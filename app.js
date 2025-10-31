@@ -13,4 +13,14 @@ app.get("/", (req, res) => {
   res.send("API Hotel Backend funcionando!");
 });
 
+app.use((err, req, res, next) => {
+  console.error('Erro pego pelo middleware:', err.stack); // Loga o erro completo
+  
+  // Envia a resposta de erro genérica
+  // Isso impede que o servidor caia.
+  res.status(500).json({ 
+    error: "Erro interno no servidor. Tente novamente mais tarde." 
+  });
+});
+
 export default app;

@@ -6,7 +6,7 @@ class RoomRepository {
       SELECT 
         id, 
         titulo AS name, 
-        descricao AS description,
+        Resumo AS description,
         preco AS price, 
         tipo AS type, 
         capacidade AS capacity, 

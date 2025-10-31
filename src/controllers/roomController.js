@@ -1,17 +1,18 @@
 import roomService from "../service/roomService.js";
 
 class roomController {
-  async listRooms(req, res) {
+  async listRooms(req, res, next) {
     try {
       const rooms = await roomService.getRooms();
       res.status(200).json(rooms);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: "Erro ao buscar quartos" });
+      // res.status(500).json({ error: "Erro ao buscar quartos" });
+      next(error);
     }
   }
 
-  async showRoomId(req, res) {
+  async showRoomId(req, res, next) {
     let id = req.params.id;
 
     try {
@@ -24,13 +25,14 @@ class roomController {
       }
     } catch (error) {
       console.error("Erro ao buscar esse quarto em específico:", error);
-      res
-        .status(500)
-        .json({ erro: "Erro ao buscar esse quarto em específico" });
+      // res
+      //   .status(500)
+      //   .json({ erro: "Erro ao buscar esse quarto em específico" });
+      next(error);
     }
   }
 
-  async updateRoom(req, res) {
+  async updateRoom(req, res, next) {
     let id = req.params.id;
     const atualizacao = req.body;
 
@@ -48,7 +50,8 @@ class roomController {
         });
     } catch (error) {
       console.log(error);
-      res.status(500).json({ erro: "Erro ao atualizar quarto." });
+      // res.status(500).json({ erro: "Erro ao atualizar quarto." });
+      next(error);
     }
   }
 }
