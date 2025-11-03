@@ -1,6 +1,8 @@
 import pool from '../database/db.js';
+import { randomUUID } from 'crypto';
 
 class RoomRepository {
+
   async getAllRooms() {
     const [rooms] = await pool.query(`
       SELECT 
@@ -64,7 +66,90 @@ class RoomRepository {
 
     return result; // tem result.affectedRows
   }
+
+  // === INSERT do QUARTO ===
+  async insertRoom(conn, room) {
+    const id = randomUUID();
+    const sql = `
+      INSERT INTO QUARTO (
+        id, titulo, tipo, descricao, preco, capacidade, status, area, camas, banheiro, resumo
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const params = [
+      id,
+      room.titulo,
+      room.tipo,
+      room.descricao ?? null,
+      room.preco,
+      room.capacidade,
+      room.status,                 // <= recebe o número e grava direto
+      room.area ?? null,
+      room.camas ?? null,
+      room.banheiro ?? null,
+      room.resumo ?? null
+    ];
+    await conn.execute(sql, params);
+    return id;
+  }
+
+  // === INSERT de 1 imagem (opcional no POST /rooms) ===
+  async insertSingleImage(conn, roomId, imagem) {
+    if (!imagem || !imagem.url) return;
+    const id = imagem.id || randomUUID();
+    const sql = `
+      INSERT INTO IMAGEM (id, id_quarto, url, descricao)
+      VALUES (?, ?, ?, ?)
+    `;
+    await conn.execute(sql, [id, roomId, imagem.url, imagem.descricao ?? null]);
+  }
+
+  // === Criação transacional do quarto + imagem opcional ===
+  async createRoomWithOptionalImage(data) {
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      const roomId = await this.insertRoom(conn, data);
+      await this.insertSingleImage(conn, roomId, data.imagem); // opcional
+
+      await conn.commit();
+      return roomId;
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
+  }
   
+  // === Rota separada: anexar 1..N imagens depois ===
+  async addImages(roomId, imagens) {
+    const list = Array.isArray(imagens) ? imagens : [imagens];
+    if (!list.length) return;
+
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      const sql = `
+        INSERT INTO IMAGEM (id, id_quarto, url, descricao)
+        VALUES (?, ?, ?, ?)
+      `;
+      for (const img of list) {
+        if (!img?.url) continue; // ignora itens inválidos silenciosamente
+        const id = img.id || randomUUID();
+        await conn.execute(sql, [id, roomId, img.url, img.descricao ?? null]);
+      }
+
+      await conn.commit();
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
+  }
+
 }
 
 export default new RoomRepository();

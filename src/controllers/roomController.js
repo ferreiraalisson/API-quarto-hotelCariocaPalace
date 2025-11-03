@@ -1,6 +1,8 @@
 import roomService from "../service/roomService.js";
 
 class roomController {
+
+  // GET
   async listRooms(req, res, next) {
     try {
       const rooms = await roomService.getRooms();
@@ -12,6 +14,7 @@ class roomController {
     }
   }
 
+  // GET ID
   async showRoomId(req, res, next) {
     let id = req.params.id;
 
@@ -32,6 +35,7 @@ class roomController {
     }
   }
 
+  // UPDATED
   async updateRoom(req, res, next) {
     let id = req.params.id;
     const atualizacao = req.body;
@@ -54,6 +58,35 @@ class roomController {
       next(error);
     }
   }
+
+  // POST
+  async newRoom(req, res, next){
+    const dataRoom = req.body;
+
+    try {
+      const created = await roomService.postRoom(dataRoom);
+      return res.status(201).json({mensagem: "Curso criado com sucesso", quarto: created})
+    } catch (error) {
+      consonle.log(error);
+      return next(error)
+      // res.status(500).json({erro: 'Erro ao criar Quarto'})
+    }
+  }
+  
+  async addImages(req, res, next) {
+    try { 
+      const { id } = req.params;
+      await roomService.addRoomImages(id, req.body); // objeto único OU array
+      return res.status(201).json({ mensagem: "Imagem(ns) adicionada(s) com sucesso" });
+      
+    } catch (error) {
+      console.error(error);
+      return next(error);
+      // ou: return res.status(400).json({ erro: error.message || 'Erro ao anexar imagem' });
+    }
+  }
+
+  // DELETE
 }
 
 export default new roomController();
