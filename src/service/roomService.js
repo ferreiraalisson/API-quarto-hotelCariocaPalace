@@ -115,6 +115,25 @@ class RoomService{
     return { ok: true };
   }
 
+  async removeRoom(id) {
+    try {
+      // Verifica se o quarto existe antes de deletar
+      const room = await roomRepository.getRoomId(id);
+
+      if (!room) {
+        const error = new Error('Quarto não encontrado');
+        error.status = 404;
+        throw error;
+      }
+      await roomRepository.killRoom(id);
+      return true;
+      
+    } catch (error) {
+      console.error('Erro no RoomService.removeRoom:', error);
+      throw error;
+    }
+  }
+
 }
 
 export default new RoomService();

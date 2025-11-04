@@ -20,7 +20,7 @@ router.patch("/api/quarto/update/:id", (req, res, next) =>
 
 // POST
 router.post("/api/quarto/create", (req, res, next) =>
-  roomController.createRoom(req, res, next)
+  roomController.newRoom(req, res, next)
 )
 
 router.post('/rooms/:id/images', (req, res, next) => 

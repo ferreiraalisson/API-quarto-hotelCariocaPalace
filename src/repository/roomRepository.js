@@ -69,14 +69,14 @@ class RoomRepository {
 
   // === INSERT do QUARTO ===
   async insertRoom(conn, room) {
-    const id = randomUUID();
+    const id = `q_${randomUUID().slice(0, 5)}`
     const sql = `
       INSERT INTO QUARTO (
         id, titulo, tipo, descricao, preco, capacidade, status, area, camas, banheiro, resumo
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const params = [
-      id,
+      id ,
       room.titulo,
       room.tipo,
       room.descricao ?? null,
@@ -148,6 +148,12 @@ class RoomRepository {
     } finally {
       conn.release();
     }
+  }
+
+  //DELETE
+  async killRoom(id){
+    const [result] = await pool.query('DELETE FROM QUARTO WHERE id = ?', [id]);
+    return result.affectedRows;
   }
 
 }

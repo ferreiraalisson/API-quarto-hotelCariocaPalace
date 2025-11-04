@@ -67,12 +67,13 @@ class roomController {
       const created = await roomService.postRoom(dataRoom);
       return res.status(201).json({mensagem: "Curso criado com sucesso", quarto: created})
     } catch (error) {
-      consonle.log(error);
+      console.log(error);
       return next(error)
       // res.status(500).json({erro: 'Erro ao criar Quarto'})
     }
   }
   
+  // ADICIONAR IMAGEM
   async addImages(req, res, next) {
     try { 
       const { id } = req.params;
@@ -87,6 +88,16 @@ class roomController {
   }
 
   // DELETE
+  async delRoom(req, res, next){
+    try {
+      const { id } = req.params;
+      await roomService.removeRoom(id);
+       return res.status(200).json({ mensagem: "Quarto removido com sucesso" });
+    } catch (error) {
+      console.error(error);
+      return next(error);
+    }
+  }
 }
 
 export default new roomController();
