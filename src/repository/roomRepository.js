@@ -6,14 +6,15 @@ class RoomRepository {
   async getAllRooms() {
     const [rooms] = await pool.query(`
       SELECT 
-        id, 
-        titulo AS name, 
-        Resumo AS description,
-        preco AS price, 
-        tipo AS type, 
-        capacidade AS capacity, 
-        status
-      FROM QUARTO
+        q.id, 
+        q.titulo AS name, 
+        q.Resumo AS description,
+        q.preco AS price, 
+        q.tipo AS type, 
+        q.capacidade AS capacity, 
+        sq.descricao AS status 
+      FROM QUARTO q
+      LEFT JOIN statusquarto sq ON q.status = sq.id_status
     `);
     return rooms;
   }
