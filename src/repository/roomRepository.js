@@ -15,6 +15,7 @@ class RoomRepository {
         sq.descricao AS status 
       FROM QUARTO q
       LEFT JOIN statusquarto sq ON q.status = sq.id_status
+      WHERE q.status <> 2;
     `);
     return rooms;
   }
@@ -39,21 +40,22 @@ class RoomRepository {
   }
 
   async getRoomId(id) {
-    const [rows] = await pool.query(
-      `SELECT
-        id, 
-        titulo AS name, 
-        descricao AS description,
-        preco AS price, 
-        tipo AS type, 
-        capacidade AS capacity, 
-        status
-      FROM QUARTO WHERE id = ?;`,
-      [id]
-    );
+  const [rows] = await pool.query(`
+    SELECT
+      q.id,
+      q.titulo AS name,
+      q.Resumo AS description,
+      q.preco AS price,
+      q.tipo AS type,
+      q.capacidade AS capacity,
+      sq.descricao AS status
+    FROM QUARTO q
+    LEFT JOIN statusquarto sq ON q.status = sq.id_status
+    WHERE q.id = ?
+  `, [id]);
 
-    return rows[0] || null;
-  }
+  return rows[0] || null;
+}
 
   async updateRoom(id, fields) {
     const keys = Object.keys(fields);
@@ -89,7 +91,7 @@ class RoomRepository {
       room.banheiro ?? null,
       room.resumo ?? null
     ];
-    await conn.execute(sql, params);
+    await conn.query(sql, params);
     return id;
   }
 
@@ -101,7 +103,7 @@ class RoomRepository {
       INSERT INTO IMAGEM (id, id_quarto, url, descricao)
       VALUES (?, ?, ?, ?)
     `;
-    await conn.execute(sql, [id, roomId, imagem.url, imagem.descricao ?? null]);
+    await conn.query(sql, [id, roomId, imagem.url, imagem.descricao ?? null]);
   }
 
   // === Criação transacional do quarto + imagem opcional ===

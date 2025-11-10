@@ -13,7 +13,13 @@ const pool = mysql.createPool({
     queueLimit: 0,
     connectTimeout: 10000,
     enableKeepAlive: true,
-    keepAliveInitialDelay: 0
+    keepAliveInitialDelay: 0,
+    idleTimeout: 60000  
 })
+
+// LOG DE ERROS DO POOL (crucial)
+pool.on('error', err => {
+  console.error('Erro no pool do MySQL:', err);
+});
 
 export default pool;
