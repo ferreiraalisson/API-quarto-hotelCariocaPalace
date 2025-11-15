@@ -31,7 +31,7 @@ class RoomService{
     if(!room) return null;
 
     const features = await roomRepository.getRoomFeatures(room.id);
-    const imagem = await roomRepository.getRoomImage(room.id);
+    const image = await roomRepository.getRoomImage(room.id);
 
     let type = room.type.toLowerCase();
     if (!['dorm', 'private', 'suite'].includes(type)){
@@ -43,7 +43,7 @@ class RoomService{
       priceDisplay: `${room.price}`,
       type,
       features,
-      imagem
+      image
     }
   }
 

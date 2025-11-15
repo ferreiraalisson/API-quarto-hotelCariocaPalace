@@ -14,7 +14,7 @@ const pool = mysql.createPool({
     connectTimeout: 10000,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0,
-    idleTimeout: 60000  
+    idleTimeout: 300000,  
 })
 
 // LOG DE ERROS DO POOL (crucial)

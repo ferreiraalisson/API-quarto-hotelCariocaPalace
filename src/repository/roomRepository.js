@@ -8,10 +8,11 @@ class RoomRepository {
       SELECT 
         q.id, 
         q.titulo AS name, 
-        q.Resumo AS description,
+        q.descricao AS description, 
         q.preco AS price, 
         q.tipo AS type, 
-        q.capacidade AS capacity, 
+        q.capacidade AS capacity,
+        q.Resumo AS resume,
         sq.descricao AS status 
       FROM QUARTO q
       LEFT JOIN statusquarto sq ON q.status = sq.id_status
@@ -42,13 +43,14 @@ class RoomRepository {
   async getRoomId(id) {
   const [rows] = await pool.query(`
     SELECT
-      q.id,
-      q.titulo AS name,
-      q.Resumo AS description,
-      q.preco AS price,
-      q.tipo AS type,
+      q.id, 
+      q.titulo AS name, 
+      q.descricao AS description, 
+      q.preco AS price, 
+      q.tipo AS type, 
       q.capacidade AS capacity,
-      sq.descricao AS status
+      q.Resumo AS resume,
+      sq.descricao AS status 
     FROM QUARTO q
     LEFT JOIN statusquarto sq ON q.status = sq.id_status
     WHERE q.id = ?
