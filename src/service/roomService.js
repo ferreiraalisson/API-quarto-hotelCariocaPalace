@@ -134,6 +134,66 @@ class RoomService{
     }
   }
 
+  async getAvailableRooms(checkIn, checkOut, guests) {
+    try {
+      // Tenta chamar o microserviço de reservas para obter os IDs dos quartos ocupados.
+      // Torna essa chamada resiliente: se o `fetch` não existir ou a chamada falhar,
+      // assumimos que não há quartos ocupados (lista vazia) para evitar erro 500.
+      const reservaApiUrl = process.env.RESERVA_API_URL || 'http://localhost:3001';
+      let quartosOcupados = [];
+
+      const hasFetch = typeof fetch === 'function';
+      if (hasFetch) {
+        try {
+          const response = await fetch(
+            `${reservaApiUrl}/api/reservas/quartos-ocupados?dataEntrada=${checkIn}&dataSaida=${checkOut}`
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            quartosOcupados = Array.isArray(data.quartosOcupados) ? data.quartosOcupados : [];
+          } else {
+            console.warn('Reserva service returned non-ok status:', response.status);
+            quartosOcupados = [];
+          }
+        } catch (err) {
+          console.error('Falha ao consultar microserviço de reservas:', err);
+          quartosOcupados = [];
+        }
+      } else {
+        // Ambiente Node sem fetch global disponível
+        console.warn('fetch não disponível no ambiente; pulando consulta ao microserviço de reservas');
+        quartosOcupados = [];
+      }
+
+      // Busca os quartos disponíveis excluindo os ocupados (se houver)
+      const rooms = await roomRepository.getAvailableRooms(quartosOcupados, guests);
+
+      // Enriquece os dados dos quartos com features e imagens
+      return await Promise.all(rooms.map(async (room) => {
+        const features = await roomRepository.getRoomFeatures(room.id);
+        const image = await roomRepository.getRoomImage(room.id);
+      
+        let type = room.type.toLowerCase();
+        if (!['dorm', 'private', 'suite'].includes(type)){
+          type = 'indefinido';
+        } 
+        
+        return{
+          ...room,
+          priceDisplay: `${room.price}`,
+          type,
+          features,
+          image
+        };
+      }));
+
+    } catch (error) {
+      console.error('Erro no RoomService.getAvailableRooms:', error);
+      throw error;
+    }
+  }
+
 }
 
 export default new RoomService();

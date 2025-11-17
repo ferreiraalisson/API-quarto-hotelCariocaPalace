@@ -161,6 +161,41 @@ class RoomRepository {
     return result.affectedRows;
   }
 
+  // Busca quartos disponíveis excluindo os ocupados
+  async getAvailableRooms(excludeRoomIds, minCapacity) {
+    let sql = `
+      SELECT 
+        q.id, 
+        q.titulo AS name, 
+        q.descricao AS description, 
+        q.preco AS price, 
+        q.tipo AS type, 
+        q.capacidade AS capacity,
+        q.Resumo AS resume,
+        sq.descricao AS status 
+      FROM QUARTO q
+      LEFT JOIN statusquarto sq ON q.status = sq.id_status
+      WHERE q.status <> 2
+    `;
+
+    const params = [];
+
+    // Adiciona filtro de capacidade mínima
+    if (minCapacity) {
+      sql += ' AND q.capacidade >= ?';
+      params.push(minCapacity);
+    }
+
+    // Exclui quartos ocupados
+    if (excludeRoomIds && excludeRoomIds.length > 0) {
+      sql += ` AND q.id NOT IN (${excludeRoomIds.map(() => '?').join(', ')})`;
+      params.push(...excludeRoomIds);
+    }
+
+    const [rooms] = await pool.query(sql, params);
+    return rooms;
+  }
+
 }
 
 export default new RoomRepository();

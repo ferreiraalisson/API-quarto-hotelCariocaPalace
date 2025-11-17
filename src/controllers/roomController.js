@@ -98,6 +98,28 @@ class roomController {
       return next(error);
     }
   }
+
+  // GET AVAILABLE ROOMS
+  async listAvailableRooms(req, res, next) {
+    try {
+      const { checkIn, checkOut, guests } = req.query;
+
+      // Validações básicas
+      if (!checkIn || !checkOut) {
+        return res.status(400).json({ 
+          erro: "Os parâmetros checkIn e checkOut são obrigatórios" 
+        });
+      }
+
+      const guestsNumber = guests ? parseInt(guests) : 1;
+      
+      const rooms = await roomService.getAvailableRooms(checkIn, checkOut, guestsNumber);
+      res.status(200).json(rooms);
+    } catch (error) {
+      console.error('Erro ao buscar quartos disponíveis:', error);
+      next(error);
+    }
+  }
 }
 
 export default new roomController();
