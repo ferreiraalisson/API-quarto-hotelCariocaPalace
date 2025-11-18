@@ -139,8 +139,30 @@ class RoomService{
       // Tenta chamar o microserviço de reservas para obter os IDs dos quartos ocupados.
       // Torna essa chamada resiliente: se o `fetch` não existir ou a chamada falhar,
       // assumimos que não há quartos ocupados (lista vazia) para evitar erro 500.
-      const reservaApiUrl = process.env.RESERVA_API_URL || 'http://localhost:3001';
+      const reservaApiUrl = process.env.RESERVA_API_URL;
       let quartosOcupados = [];
+
+      if (!reservaApiUrl) {
+        console.warn('RESERVA_API_URL não configurada no .env; pulando consulta ao microserviço de reservas');
+        const rooms = await roomRepository.getAvailableRooms([], guests);
+        return await Promise.all(rooms.map(async (room) => {
+          const features = await roomRepository.getRoomFeatures(room.id);
+          const image = await roomRepository.getRoomImage(room.id);
+        
+          let type = room.type.toLowerCase();
+          if (!['dorm', 'private', 'suite'].includes(type)){
+            type = 'indefinido';
+          } 
+          
+          return{
+            ...room,
+            priceDisplay: `${room.price}`,
+            type,
+            features,
+            image
+          };
+        }));
+      }
 
       const hasFetch = typeof fetch === 'function';
       if (hasFetch) {
